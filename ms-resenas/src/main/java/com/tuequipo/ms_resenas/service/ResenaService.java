@@ -8,18 +8,42 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
+/**
+ * Servicio de negocio para resenas.
+ * Valida que el usuario exista en ms-usuarios antes de registrar la resena.
+ */
 @Service
 public class ResenaService {
 
     private static final Logger log = LoggerFactory.getLogger(ResenaService.class);
     private final ResenaRepository repository;
+    private final UsuarioClientService usuarioClientService;
 
-    public ResenaService(ResenaRepository repository) {
+    public ResenaService(ResenaRepository repository, UsuarioClientService usuarioClientService) {
         this.repository = repository;
+        this.usuarioClientService = usuarioClientService;
     }
 
+    /**
+     * Crea una resena verificando que el usuario exista en ms-usuarios.
+     */
     public Resena crear(ResenaDTO dto) {
-        log.info("Creando resena de usuario {} para referencia {}", dto.getUsuarioId(), dto.getReferenciaId());
+        log.info("Creando resena de usuario {} para referencia {} tipo {}",
+                dto.getUsuarioId(), dto.getReferenciaId(), dto.getTipo());
+
+        // Regla de negocio: verificar usuario en ms-usuarios antes de aceptar la resena
+        usuarioClientService.verificarUsuario(dto.getUsuarioId());
+
+        // Regla de negocio: un usuario no puede reseñar el mismo elemento dos veces
+        List<Resena> existentes = repository.findByReferenciaIdAndTipo(dto.getReferenciaId(), dto.getTipo());
+        boolean yaResenado = existentes.stream()
+                .anyMatch(r -> r.getUsuarioId().equals(dto.getUsuarioId()));
+        if (yaResenado) {
+            log.warn("Usuario {} ya tiene una resena para referencia {} tipo {}",
+                    dto.getUsuarioId(), dto.getReferenciaId(), dto.getTipo());
+            throw new RuntimeException("El usuario ya tiene una resena para este elemento");
+        }
+
         Resena resena = new Resena();
         resena.setUsuarioId(dto.getUsuarioId());
         resena.setReferenciaId(dto.getReferenciaId());

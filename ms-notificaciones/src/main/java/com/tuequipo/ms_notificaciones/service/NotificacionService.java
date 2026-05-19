@@ -8,25 +8,39 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
+/**
+ * Servicio de negocio para notificaciones.
+ * Verifica que el usuario destinatario exista en ms-usuarios antes de crear la notificacion.
+ */
 @Service
 public class NotificacionService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificacionService.class);
     private final NotificacionRepository repository;
+    private final UsuarioClientService usuarioClientService;
 
-    public NotificacionService(NotificacionRepository repository) {
+    public NotificacionService(NotificacionRepository repository,
+                               UsuarioClientService usuarioClientService) {
         this.repository = repository;
+        this.usuarioClientService = usuarioClientService;
     }
 
+    /**
+     * Crea una notificacion verificando previamente que el usuario existe en ms-usuarios.
+     */
     public Notificacion crear(NotificacionDTO dto) {
-        log.info("Creando notificacion para usuario {}", dto.getUsuarioId());
+        log.info("Creando notificacion tipo {} para usuario {}", dto.getTipo(), dto.getUsuarioId());
+
+        // Regla de negocio: verificar que el usuario existe antes de notificar
+        usuarioClientService.buscarUsuarioPorId(dto.getUsuarioId());
+
         Notificacion notificacion = new Notificacion();
         notificacion.setUsuarioId(dto.getUsuarioId());
         notificacion.setTitulo(dto.getTitulo());
         notificacion.setMensaje(dto.getMensaje());
         notificacion.setTipo(dto.getTipo());
         Notificacion guardada = repository.save(notificacion);
-        log.info("Notificacion creada con ID {}", guardada.getId());
+        log.info("Notificacion creada con ID {} para usuario {}", guardada.getId(), dto.getUsuarioId());
         return guardada;
     }
 

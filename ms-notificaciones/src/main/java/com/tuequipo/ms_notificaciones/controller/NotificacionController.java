@@ -3,6 +3,7 @@ package com.tuequipo.ms_notificaciones.controller;
 import com.tuequipo.ms_notificaciones.dto.NotificacionDTO;
 import com.tuequipo.ms_notificaciones.model.Notificacion;
 import com.tuequipo.ms_notificaciones.service.NotificacionService;
+import com.tuequipo.ms_notificaciones.service.UsuarioClientService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notificaciones")
@@ -17,14 +19,16 @@ public class NotificacionController {
 
     private static final Logger log = LoggerFactory.getLogger(NotificacionController.class);
     private final NotificacionService service;
+    private final UsuarioClientService usuarioClientService;
 
-    public NotificacionController(NotificacionService service) {
+    public NotificacionController(NotificacionService service, UsuarioClientService usuarioClientService) {
         this.service = service;
+        this.usuarioClientService = usuarioClientService;
     }
 
     @PostMapping
     public ResponseEntity<Notificacion> crear(@Valid @RequestBody NotificacionDTO dto) {
-        log.info("POST /api/notificaciones");
+        log.info("POST /api/notificaciones - usuario {}", dto.getUsuarioId());
         return ResponseEntity.status(HttpStatus.CREATED).body(service.crear(dto));
     }
 
@@ -63,5 +67,13 @@ public class NotificacionController {
         log.info("DELETE /api/notificaciones/{}", id);
         service.eliminar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Comunicacion entre microservicios — verifica usuario en ms-usuarios
+    @GetMapping("/usuario/{usuarioId}/info")
+    public ResponseEntity<Map<String, Object>> obtenerInfoUsuario(@PathVariable Long usuarioId) {
+        log.info("GET /api/notificaciones/usuario/{}/info - consultando ms-usuarios", usuarioId);
+        Map<String, Object> usuario = usuarioClientService.buscarUsuarioPorId(usuarioId);
+        return ResponseEntity.ok(usuario);
     }
 }
