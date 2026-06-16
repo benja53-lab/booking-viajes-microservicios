@@ -3,6 +3,7 @@ package com.tuequipo.ms_resenas.controller;
 import com.tuequipo.ms_resenas.dto.ResenaDTO;
 import com.tuequipo.ms_resenas.model.Resena;
 import com.tuequipo.ms_resenas.service.ResenaService;
+import com.tuequipo.ms_resenas.service.UsuarioClientService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/resenas")
@@ -17,14 +19,16 @@ public class ResenaController {
 
     private static final Logger log = LoggerFactory.getLogger(ResenaController.class);
     private final ResenaService service;
+    private final UsuarioClientService usuarioClientService;
 
-    public ResenaController(ResenaService service) {
+    public ResenaController(ResenaService service, UsuarioClientService usuarioClientService) {
         this.service = service;
+        this.usuarioClientService = usuarioClientService;
     }
 
     @PostMapping
     public ResponseEntity<Resena> crear(@Valid @RequestBody ResenaDTO dto) {
-        log.info("POST /api/resenas");
+        log.info("POST /api/resenas - usuario {}", dto.getUsuarioId());
         return ResponseEntity.status(HttpStatus.CREATED).body(service.crear(dto));
     }
 
@@ -59,5 +63,13 @@ public class ResenaController {
         log.info("DELETE /api/resenas/{}", id);
         service.eliminar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Comunicacion entre microservicios — verifica autor en ms-usuarios
+    @GetMapping("/usuario/{usuarioId}/perfil")
+    public ResponseEntity<Map<String, Object>> obtenerPerfilUsuario(@PathVariable Long usuarioId) {
+        log.info("GET /api/resenas/usuario/{}/perfil - consultando ms-usuarios", usuarioId);
+        Map<String, Object> usuario = usuarioClientService.verificarUsuario(usuarioId);
+        return ResponseEntity.ok(usuario);
     }
 }

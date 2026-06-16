@@ -7,23 +7,47 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * Servicio de negocio para reservas de hotel.
+ * Valida fechas, disponibilidad del hotel y reglas de negocio del dominio.
+ */
 @Service
 public class ReservaHotelService {
 
     private static final Logger log = LoggerFactory.getLogger(ReservaHotelService.class);
-    private final ReservaHotelRepository repository;
 
-    public ReservaHotelService(ReservaHotelRepository repository) {
+    private final ReservaHotelRepository repository;
+    private final HotelClientService hotelClientService;
+
+    public ReservaHotelService(ReservaHotelRepository repository,
+                               HotelClientService hotelClientService) {
         this.repository = repository;
+        this.hotelClientService = hotelClientService;
     }
 
+    /**
+     * Crea una reserva de hotel aplicando reglas de negocio:
+     * - Fecha de checkout debe ser posterior al checkin
+     * - El hotel debe existir y estar disponible en ms-hoteles
+     */
     public ReservaHotel crear(ReservaHotelDTO dto) {
-        log.info("Creando reserva de hotel para usuario {}", dto.getUsuarioId());
+        log.info("Iniciando creacion de reserva de hotel para usuario {}", dto.getUsuarioId());
 
+        // Regla de negocio: validacion de fechas
         if (dto.getFechaCheckOut().isBefore(dto.getFechaCheckIn()) ||
             dto.getFechaCheckOut().isEqual(dto.getFechaCheckIn())) {
+            log.warn("Fechas invalidas: checkIn={}, checkOut={}", dto.getFechaCheckIn(), dto.getFechaCheckOut());
             throw new RuntimeException("La fecha de check-out debe ser posterior al check-in");
+        }
+
+        // Regla de negocio: verificar que el hotel existe y está disponible en ms-hoteles
+        Map<String, Object> hotel = hotelClientService.buscarHotelPorId(dto.getHotelId());
+        Boolean disponible = (Boolean) hotel.get("disponible");
+        if (disponible == null || !disponible) {
+            log.warn("Hotel {} no disponible para reserva", dto.getHotelId());
+            throw new RuntimeException("El hotel con ID " + dto.getHotelId() + " no esta disponible");
         }
 
         ReservaHotel reserva = new ReservaHotel();
@@ -60,7 +84,7 @@ public class ReservaHotelService {
         ReservaHotel reserva = buscarPorId(id);
         reserva.setEstado(nuevoEstado);
         ReservaHotel actualizada = repository.save(reserva);
-        log.info("Estado actualizado para reserva {}", id);
+        log.info("Estado actualizado para reserva {} -> {}", id, nuevoEstado);
         return actualizada;
     }
 
