@@ -19,7 +19,7 @@ public class VueloClientService {
 
     public VueloClientService(WebClient.Builder builder) {
         this.webClient = builder
-                .baseUrl("http://localhost:8089")
+                .baseUrl("http://ms-vuelos:8089")
                 .build();
     }
 

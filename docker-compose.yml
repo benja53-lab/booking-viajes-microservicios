@@ -1,0 +1,228 @@
+version: '3.8'
+
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: mysql-booking
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: booking
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - booking-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ms-eureka-server:
+    build: ./ms-eureka-server
+    container_name: ms-eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - booking-network
+
+  ms-usuarios:
+    build: ./ms-usuarios
+    container_name: ms-usuarios
+    ports:
+      - "8090:8090"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_usuarios?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://ms-eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ms-eureka-server:
+        condition: service_started
+    networks:
+      - booking-network
+
+  ms-hoteles:
+    build: ./ms-hoteles
+    container_name: ms-hoteles
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_hoteles?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://ms-eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ms-eureka-server:
+        condition: service_started
+    networks:
+      - booking-network
+
+  ms-vuelos:
+    build: ./ms-vuelos
+    container_name: ms-vuelos
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_vuelos?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://ms-eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ms-eureka-server:
+        condition: service_started
+    networks:
+      - booking-network
+
+  ms-destinos:
+    build: ./ms-destinos
+    container_name: ms-destinos
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_destinos?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://ms-eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ms-eureka-server:
+        condition: service_started
+    networks:
+      - booking-network
+
+  ms-paquetes:
+    build: ./ms-paquetes
+    container_name: ms-paquetes
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_paquetes?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://ms-eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ms-eureka-server:
+        condition: service_started
+    networks:
+      - booking-network
+
+  ms-reservas-hotel:
+    build: ./ms-reservas-hotel
+    container_name: ms-reservas-hotel
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_reservas_hotel?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://ms-eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ms-eureka-server:
+        condition: service_started
+    networks:
+      - booking-network
+
+  ms-reservas-vuelo:
+    build: ./ms-reservas-vuelo
+    container_name: ms-reservas-vuelo
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_reservas_vuelo?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://ms-eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ms-eureka-server:
+        condition: service_started
+    networks:
+      - booking-network
+
+  ms-pagos:
+    build: ./ms-pagos
+    container_name: ms-pagos
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_pagos?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://ms-eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ms-eureka-server:
+        condition: service_started
+    networks:
+      - booking-network
+
+  ms-resenas:
+    build: ./ms-resenas
+    container_name: ms-resenas
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_resenas?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://ms-eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ms-eureka-server:
+        condition: service_started
+    networks:
+      - booking-network
+
+  ms-notificaciones:
+    build: ./ms-notificaciones
+    container_name: ms-notificaciones
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_notificaciones?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://ms-eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ms-eureka-server:
+        condition: service_started
+    networks:
+      - booking-network
+
+  ms-gateway:
+    build: ./ms-gateway
+    container_name: ms-gateway
+    ports:
+      - "9090:9090"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://ms-eureka-server:8761/eureka/
+    depends_on:
+      - ms-eureka-server
+    networks:
+      - booking-network
+
+networks:
+  booking-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

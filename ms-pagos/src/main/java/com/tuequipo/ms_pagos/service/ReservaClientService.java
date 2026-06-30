@@ -20,8 +20,8 @@ public class ReservaClientService {
     private final WebClient vueloWebClient;
 
     public ReservaClientService(WebClient.Builder builder) {
-        this.hotelWebClient = builder.baseUrl("http://localhost:8083").build();
-        this.vueloWebClient = builder.baseUrl("http://localhost:8081").build();
+        this.hotelWebClient = builder.baseUrl("http://ms-reservas-hotel:8083").build();
+        this.vueloWebClient = builder.baseUrl("http://ms-reservas-vuelo:8081").build();
     }
 
     /**
