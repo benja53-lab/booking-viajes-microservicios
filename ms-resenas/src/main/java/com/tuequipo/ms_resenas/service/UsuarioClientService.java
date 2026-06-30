@@ -19,7 +19,7 @@ public class UsuarioClientService {
 
     public UsuarioClientService(WebClient.Builder builder) {
         this.webClient = builder
-                .baseUrl("http://localhost:8090")
+                .baseUrl("http://ms-usuarios:8090")
                 .build();
     }
 

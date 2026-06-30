@@ -19,7 +19,7 @@ public class HotelClientService {
 
     public HotelClientService(WebClient.Builder builder) {
         this.webClient = builder
-                .baseUrl("http://localhost:8082")
+                .baseUrl("http://ms-hoteles:8082")
                 .build();
     }
 
